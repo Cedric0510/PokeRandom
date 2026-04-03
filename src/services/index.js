@@ -3,3 +3,5 @@ export {
   fetchPokemonById,
   fetchPokemonsByIds,
 } from './pokeapiService';
+
+export { loadRandomPokemonBatch } from './pokemonBatchService';
