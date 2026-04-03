@@ -11,12 +11,25 @@ import {
 import { fetchPokemonCount, fetchPokemonsByIds } from './src/services';
 import { generateRandomPokemonIds } from './src/utils';
 
+function formatPokemonName(name) {
+  if (!name) {
+    return '';
+  }
+
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 export default function App() {
   const [pokemonCount, setPokemonCount] = useState(null);
   const [pokemonList, setPokemonList] = useState([]);
   const [lastLoadedIds, setLastLoadedIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const handlePokemonPress = (pokemonId) => {
+    // Future step: replace with navigation.navigate('PokemonDetail', { pokemonId })
+    console.log('Pokemon selected:', pokemonId);
+  };
 
   const loadPokemons = async () => {
     setIsLoading(true);
@@ -31,6 +44,11 @@ export default function App() {
       }
 
       const randomIds = generateRandomPokemonIds(total, lastLoadedIds, 5);
+
+      if (randomIds.length === 0) {
+        throw new Error('No Pokemon ids generated.');
+      }
+
       const pokemons = await fetchPokemonsByIds(randomIds);
 
       setPokemonList(pokemons);
@@ -59,7 +77,10 @@ export default function App() {
         <View style={styles.list}>
           {pokemonList.map((pokemon) => (
             <View key={pokemon.id} style={styles.buttonWrapper}>
-              <Button title={pokemon.name} onPress={() => {}} />
+              <Button
+                title={formatPokemonName(pokemon.name)}
+                onPress={() => handlePokemonPress(pokemon.id)}
+              />
             </View>
           ))}
         </View>
