@@ -12,7 +12,7 @@ async function fetchFromPokeApi(path) {
 }
 
 export async function fetchPokemonCount() {
-  const data = await fetchFromPokeApi('/pokemon?limit=1');
+  const data = await fetchFromPokeApi('/pokemon-species?limit=1');
   return data.count;
 }
 
