@@ -1,4 +1,5 @@
-const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
+const POKEAPI_BASE_URL =
+  process.env.EXPO_PUBLIC_POKEAPI_BASE_URL || 'https://pokeapi.co/api/v2';
 
 async function fetchFromPokeApi(path) {
   const response = await fetch(`${POKEAPI_BASE_URL}${path}`);
