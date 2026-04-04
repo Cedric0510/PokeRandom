@@ -2,16 +2,16 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
-  SafeAreaView,
   ScrollView,
   Text,
   View,
 } from 'react-native';
-import { Pokedex } from '../../components/HomePokedex/Pokedex';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pokedex } from '../../components/Pokedex/Pokedex';
 import { loadRandomPokemonBatch } from '../../services';
 import { styleHomeScreen } from './StyleHomeScreen';
 
-export default function HomeScreen() {
+export default function HomeScreen({ onPokemonPress = () => {} }) {
   const [totalPokemonCount, setTotalPokemonCount] = useState(null);
   const [pokemonList, setPokemonList] = useState([]);
   const [previousPokemonIds, setPreviousPokemonIds] = useState([]);
@@ -60,7 +60,10 @@ export default function HomeScreen() {
         {errorMessage ? <Text style={styleHomeScreen.error}>{errorMessage}</Text> : null}
 
         {(pokemonList.length > 0 || (!isLoading && !errorMessage)) ? (
-          <Pokedex pokemons={pokemonList} />
+          <Pokedex
+            pokemons={pokemonList}
+            onPokemonPress={onPokemonPress}
+          />
         ) : null}
 
         <View style={styleHomeScreen.reloadButton}>
