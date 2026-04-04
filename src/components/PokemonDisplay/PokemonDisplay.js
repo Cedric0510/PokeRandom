@@ -1,8 +1,5 @@
-import { Image, Linking, Pressable, Text, View } from 'react-native';
+import { Image, Pressable, Text, View } from 'react-native';
 import { stylePokemonDisplay } from './StylePokemonDisplay';
-
-const POKEAPI_BASE_URL =
-    process.env.EXPO_PUBLIC_POKEAPI_BASE_URL || 'https://pokeapi.co/api/v2';
 
 function formatPokemonId(id) {
     return String(id).padStart(3, '0');
@@ -24,11 +21,7 @@ function getPokemonSprite(pokemon) {
     return pokemon.sprites.front_default;
 }
 
-function getPokemonUrl(id) {
-    return `${POKEAPI_BASE_URL.replace(/\/$/, '')}/pokemon/${id}`;
-}
-
-export function PokemonDisplay({ pokemon }) {
+export function PokemonDisplay({ pokemon, onPress = () => {} }) {
     const sprite = getPokemonSprite(pokemon);
     const displayName = formatPokemonName(pokemon?.name);
 
@@ -36,7 +29,7 @@ export function PokemonDisplay({ pokemon }) {
         <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Voir ${displayName}`}
-            onPress={() => Linking.openURL(getPokemonUrl(pokemon?.id))}
+            onPress={() => onPress(pokemon)}
             style={({ pressed }) => [
                 stylePokemonDisplay.card,
                 pressed ? stylePokemonDisplay.cardPressed : null,

@@ -2,7 +2,7 @@ import { Text, View } from 'react-native';
 import { PokemonDisplay } from '../PokemonDisplay/PokemonDisplay';
 import { stylePokedex } from './StylePokedex';
 
-export function Pokedex({ pokemons = [] }) {
+export function Pokedex({ pokemons = [], onPokemonPress = () => {} }) {
   return (
     <View style={stylePokedex.wrapper}>
       <View style={stylePokedex.shell}>
@@ -26,7 +26,11 @@ export function Pokedex({ pokemons = [] }) {
           {pokemons.length > 0 ? (
             <View style={stylePokedex.grid}>
               {pokemons.map((pokemon) => (
-                <PokemonDisplay key={pokemon.id} pokemon={pokemon} />
+                <PokemonDisplay
+                  key={pokemon.id}
+                  pokemon={pokemon}
+                  onPress={onPokemonPress}
+                />
               ))}
             </View>
           ) : (
