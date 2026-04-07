@@ -25,7 +25,10 @@ const TYPE_COLORS = {
 export function DetailPokemon({ pokemon }) {
   const displayName = pokemon.name;
   const artwork = pokemon.sprites.other['official-artwork'].front_default;
-  const thumbs = [pokemon.sprites.front_default, pokemon.sprites.front_shiny];
+  const thumbs = [
+    pokemon.sprites.front_default,
+    pokemon.sprites.front_shiny,
+  ].filter(Boolean);
   const category = pokemon.types[0].type.name;
   const description = `Main stats: ${pokemon.stats
     .slice(0, 2)
