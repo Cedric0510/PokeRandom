@@ -119,13 +119,16 @@ export const styleDetailPokemon = StyleSheet.create({
   },
   thumbRow: {
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
     marginBottom: 10,
   },
   thumbFrame: {
     width: 82,
     height: 82,
+    flexShrink: 0,
     borderWidth: 2,
     borderColor: '#6AB764',
     borderRadius: 10,
