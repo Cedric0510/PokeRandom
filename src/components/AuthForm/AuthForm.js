@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { TouchableOpacity, Text, TextInput, View } from 'react-native';
 import { styleAuthForm } from './StyleAuthForm';
 
 export function AuthForm({ onSubmit, errorMessage }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
   return (
     <View style={styleAuthForm.container}>
       <View style={styleAuthForm.shell}>
@@ -27,6 +31,8 @@ export function AuthForm({ onSubmit, errorMessage }) {
               style={styleAuthForm.input}
               placeholder="ex: AshKetchum42"
               placeholderTextColor="#A3927F"
+              value={username}
+              onChangeText={setUsername}
               autoCapitalize="none"
               autoCorrect={false}
             />
@@ -38,6 +44,8 @@ export function AuthForm({ onSubmit, errorMessage }) {
               style={styleAuthForm.input}
               placeholder="********"
               placeholderTextColor="#A3927F"
+              value={password}
+              onChangeText={setPassword}
               secureTextEntry={true}
               autoCapitalize="none"
               autoCorrect={false}
@@ -46,7 +54,10 @@ export function AuthForm({ onSubmit, errorMessage }) {
 
           <Text style={styleAuthForm.helper}>Prêt a capturer quelques Pokemon ?</Text>
 
-          <TouchableOpacity style={styleAuthForm.button} onPress={onSubmit}>
+          <TouchableOpacity
+            style={styleAuthForm.button}
+            onPress={() => onSubmit(username, password)}
+          >
             <Text style={styleAuthForm.buttonText}>Se connecter</Text>
           </TouchableOpacity>
         </View>

@@ -16,6 +16,7 @@ export default function App() {
       return;
     }
     authenticate(username);
+    setAuthErrorMessage(null);
     setIsAuthenticated(true);
   };
 
