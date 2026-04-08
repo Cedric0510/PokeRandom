@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -12,7 +13,10 @@ import { loadRandomPokemonBatch } from '../../services';
 import { getFavoritesPokemon, toggleFavoritePokemon } from '../../services/authService';
 import { styleHomeScreen } from './StyleHomeScreen';
 
-export default function HomeScreen({ onPokemonPress = () => {} }) {
+export default function HomeScreen({
+  onPokemonPress = () => {},
+  onLogout = () => {},
+}) {
   const [totalPokemonCount, setTotalPokemonCount] = useState(null);
   const [pokemonList, setPokemonList] = useState([]);
   const [favoritePokemonIds, setFavoritePokemonIds] = useState([]);
@@ -73,8 +77,16 @@ export default function HomeScreen({ onPokemonPress = () => {} }) {
         contentContainerStyle={styleHomeScreen.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styleHomeScreen.title}>Mini Pokedex</Text>
-        <Text style={styleHomeScreen.subtitle}>Selection aleatoire facon ecran Pokedex</Text>
+        <View style={styleHomeScreen.headerRow}>
+          <View style={styleHomeScreen.titleBlock}>
+            <Text style={styleHomeScreen.title}>Mini Pokedex</Text>
+            <Text style={styleHomeScreen.subtitle}>Selection aleatoire facon ecran Pokedex</Text>
+          </View>
+
+          <Pressable style={styleHomeScreen.logoutButton} onPress={onLogout}>
+            <Text style={styleHomeScreen.logoutButtonText}>Logout</Text>
+          </Pressable>
+        </View>
 
         {isLoading && pokemonList.length === 0 ? (
           <ActivityIndicator size="large" color="#EE4F49" style={styleHomeScreen.loader} />

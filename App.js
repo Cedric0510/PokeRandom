@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DetailScreen, HomeScreen } from './src/screens';
 import { AuthForm } from './src/components/AuthForm/AuthForm';
-import { authenticate, getAuthenticatedUser } from './src/services/authService';
+import { authenticate, getAuthenticatedUser, logout } from './src/services/authService';
 
 export default function App() {
   const [selectedPokemon, setSelectedPokemon] = useState(null);
@@ -45,6 +45,17 @@ export default function App() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setSelectedPokemon(null);
+      setIsAuthenticated(false);
+      setAuthErrorMessage(null);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   if (isCheckingSession) {
     return null;
   }
@@ -67,7 +78,10 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <HomeScreen onPokemonPress={setSelectedPokemon} />
+      <HomeScreen
+        onPokemonPress={setSelectedPokemon}
+        onLogout={handleLogout}
+      />
       <StatusBar style="auto" />
     </SafeAreaProvider>
   );
