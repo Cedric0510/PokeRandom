@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Button,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -9,23 +10,34 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Pokedex } from '../../components/Pokedex/Pokedex';
 import { loadRandomPokemonBatch } from '../../services';
+import { getFavoritesPokemon, toggleFavoritePokemon } from '../../services/authService';
 import { styleHomeScreen } from './StyleHomeScreen';
 
-export default function HomeScreen({ onPokemonPress = () => {} }) {
+export default function HomeScreen({
+  onPokemonPress = () => {},
+  onLogout = () => {},
+}) {
   const [totalPokemonCount, setTotalPokemonCount] = useState(null);
   const [pokemonList, setPokemonList] = useState([]);
+  const [favoritePokemonIds, setFavoritePokemonIds] = useState([]);
   const [previousPokemonIds, setPreviousPokemonIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const loadPokemons = async () => {
+  const loadPokemons = async (hiddenPokemonIds = null) => {
     setIsLoading(true);
     setErrorMessage('');
 
     try {
+      const activeHiddenPokemonIds =
+        hiddenPokemonIds ?? (await getFavoritesPokemon());
+
+      setFavoritePokemonIds(activeHiddenPokemonIds);
+
       const { totalPokemonCount: nextTotalCount, pokemonIds, pokemons } =
         await loadRandomPokemonBatch({
           previousPokemonIds,
+          hiddenPokemonIds: activeHiddenPokemonIds,
           knownPokemonCount: totalPokemonCount,
         });
 
@@ -41,8 +53,28 @@ export default function HomeScreen({ onPokemonPress = () => {} }) {
   };
 
   useEffect(() => {
-    loadPokemons();
+    const initializeHomeScreen = async () => {
+      try {
+        const favorites = await getFavoritesPokemon();
+        await loadPokemons(favorites);
+      } catch (error) {
+        console.error(error);
+        await loadPokemons([]);
+      }
+    };
+
+    initializeHomeScreen();
   }, []);
+
+  const handleToggleFavorite = async (pokemonId) => {
+    try {
+      const nextFavorites = await toggleFavoritePokemon(pokemonId);
+      setFavoritePokemonIds(nextFavorites);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage("Impossible de mettre a jour les favoris pour l'instant.");
+    }
+  };
 
   return (
     <SafeAreaView style={styleHomeScreen.container}>
@@ -50,8 +82,16 @@ export default function HomeScreen({ onPokemonPress = () => {} }) {
         contentContainerStyle={styleHomeScreen.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styleHomeScreen.title}>Mini Pokedex</Text>
-        <Text style={styleHomeScreen.subtitle}>Selection aleatoire facon ecran Pokedex</Text>
+        <View style={styleHomeScreen.headerRow}>
+          <View style={styleHomeScreen.titleBlock}>
+            <Text style={styleHomeScreen.title}>Mini Pokedex</Text>
+            <Text style={styleHomeScreen.subtitle}>Selection aleatoire facon ecran Pokedex</Text>
+          </View>
+
+          <Pressable style={styleHomeScreen.logoutButton} onPress={onLogout}>
+            <Text style={styleHomeScreen.logoutButtonText}>Logout</Text>
+          </Pressable>
+        </View>
 
         {isLoading && pokemonList.length === 0 ? (
           <ActivityIndicator size="large" color="#EE4F49" style={styleHomeScreen.loader} />
@@ -62,7 +102,9 @@ export default function HomeScreen({ onPokemonPress = () => {} }) {
         {(pokemonList.length > 0 || (!isLoading && !errorMessage)) ? (
           <Pokedex
             pokemons={pokemonList}
+            favoritePokemonIds={favoritePokemonIds}
             onPokemonPress={onPokemonPress}
+            onToggleFavorite={handleToggleFavorite}
           />
         ) : null}
 

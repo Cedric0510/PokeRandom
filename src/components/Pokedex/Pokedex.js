@@ -2,7 +2,12 @@ import { Text, View } from 'react-native';
 import { PokemonDisplay } from '../PokemonDisplay/PokemonDisplay';
 import { stylePokedex } from './StylePokedex';
 
-export function Pokedex({ pokemons = [], onPokemonPress = () => {} }) {
+export function Pokedex({
+  pokemons = [],
+  favoritePokemonIds = [],
+  onPokemonPress = () => {},
+  onToggleFavorite = () => {},
+}) {
   return (
     <View style={stylePokedex.wrapper}>
       <View style={stylePokedex.shell}>
@@ -29,7 +34,9 @@ export function Pokedex({ pokemons = [], onPokemonPress = () => {} }) {
                 <PokemonDisplay
                   key={pokemon.id}
                   pokemon={pokemon}
+                  isFavorite={favoritePokemonIds.includes(pokemon.id)}
                   onPress={onPokemonPress}
+                  onToggleFavorite={onToggleFavorite}
                 />
               ))}
             </View>

@@ -3,6 +3,7 @@ import { fetchPokemonCount, fetchPokemonsByIds } from './pokeapiService';
 
 export async function loadRandomPokemonBatch({
   previousPokemonIds = [],
+  hiddenPokemonIds = [],
   knownPokemonCount = null,
   batchSize = DEFAULT_POKEMON_BATCH_SIZE,
 } = {}) {
@@ -12,11 +13,24 @@ export async function loadRandomPokemonBatch({
     totalPokemonCount = await fetchPokemonCount();
   }
 
-  const pokemonIds = generateRandomPokemonIds(
+  const excludedPokemonIds = [
+    ...previousPokemonIds,
+    ...hiddenPokemonIds,
+  ];
+
+  let pokemonIds = generateRandomPokemonIds(
     totalPokemonCount,
-    previousPokemonIds,
+    excludedPokemonIds,
     batchSize
   );
+
+  if (pokemonIds.some((pokemonId) => hiddenPokemonIds.includes(pokemonId))) {
+    pokemonIds = generateRandomPokemonIds(
+      totalPokemonCount,
+      hiddenPokemonIds,
+      batchSize
+    );
+  }
 
   if (pokemonIds.length === 0) {
     throw new Error('Unable to generate pokemon ids.');
