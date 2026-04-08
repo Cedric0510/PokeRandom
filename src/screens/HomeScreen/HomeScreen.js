@@ -24,14 +24,20 @@ export default function HomeScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const loadPokemons = async () => {
+  const loadPokemons = async (hiddenPokemonIds = null) => {
     setIsLoading(true);
     setErrorMessage('');
 
     try {
+      const activeHiddenPokemonIds =
+        hiddenPokemonIds ?? (await getFavoritesPokemon());
+
+      setFavoritePokemonIds(activeHiddenPokemonIds);
+
       const { totalPokemonCount: nextTotalCount, pokemonIds, pokemons } =
         await loadRandomPokemonBatch({
           previousPokemonIds,
+          hiddenPokemonIds: activeHiddenPokemonIds,
           knownPokemonCount: totalPokemonCount,
         });
 
@@ -50,12 +56,11 @@ export default function HomeScreen({
     const initializeHomeScreen = async () => {
       try {
         const favorites = await getFavoritesPokemon();
-        setFavoritePokemonIds(favorites);
+        await loadPokemons(favorites);
       } catch (error) {
         console.error(error);
+        await loadPokemons([]);
       }
-
-      await loadPokemons();
     };
 
     initializeHomeScreen();

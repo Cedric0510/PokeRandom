@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MAX_FAVORITE_POKEMON = 5;
+const FAVORITE_POKEMON_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
 
 function buildFavoritePokemonKey(username) {
   return `favoritePokemon:${username}`;
@@ -35,6 +36,24 @@ function normalizeFavoritePokemonIds(pokemonIds) {
   return uniquePokemonIds.slice(-MAX_FAVORITE_POKEMON);
 }
 
+function isFavoritePokemonEntryExpired(entry) {
+  if (!entry?.expiresAt) {
+    return false;
+  }
+
+  const expiresAt = Date.parse(entry.expiresAt);
+
+  return Number.isFinite(expiresAt) && Date.now() >= expiresAt;
+}
+
+function buildFavoritePokemonEntry(username, pokemonIds = []) {
+  return {
+    username,
+    pokemons: normalizeFavoritePokemonIds(pokemonIds),
+    expiresAt: new Date(Date.now() + FAVORITE_POKEMON_DURATION_MS).toISOString(),
+  };
+}
+
 async function writeFavoritePokemonEntry(entry) {
   const storageKey = buildFavoritePokemonKey(entry.username);
   await AsyncStorage.setItem(storageKey, JSON.stringify(entry));
@@ -53,10 +72,7 @@ async function readFavoritePokemonEntry() {
   const rawFavorites = await AsyncStorage.getItem(storageKey);
 
   if (!rawFavorites) {
-    const emptyEntry = {
-      username: authenticatedUser.username,
-      pokemons: [],
-    };
+    const emptyEntry = buildFavoritePokemonEntry(authenticatedUser.username, []);
 
     await writeFavoritePokemonEntry(emptyEntry);
     return emptyEntry;
@@ -73,10 +89,22 @@ async function readFavoritePokemonEntry() {
       throw new Error('Invalid favorite Pokemon storage.');
     }
 
-    if (normalizedFavorites.length !== parsedFavorites.pokemons.length) {
+    if (isFavoritePokemonEntryExpired(parsedFavorites)) {
+      const resetEntry = buildFavoritePokemonEntry(authenticatedUser.username, []);
+      await writeFavoritePokemonEntry(resetEntry);
+      return resetEntry;
+    }
+
+    if (
+      normalizedFavorites.length !== parsedFavorites.pokemons.length ||
+      typeof parsedFavorites.expiresAt !== 'string'
+    ) {
       const normalizedEntry = {
-        username: authenticatedUser.username,
-        pokemons: normalizedFavorites,
+        ...buildFavoritePokemonEntry(authenticatedUser.username, normalizedFavorites),
+        expiresAt:
+          typeof parsedFavorites.expiresAt === 'string'
+            ? parsedFavorites.expiresAt
+            : new Date(Date.now() + FAVORITE_POKEMON_DURATION_MS).toISOString(),
       };
 
       await writeFavoritePokemonEntry(normalizedEntry);
@@ -85,10 +113,7 @@ async function readFavoritePokemonEntry() {
 
     return parsedFavorites;
   } catch (error) {
-    const resetEntry = {
-      username: authenticatedUser.username,
-      pokemons: [],
-    };
+    const resetEntry = buildFavoritePokemonEntry(authenticatedUser.username, []);
 
     await writeFavoritePokemonEntry(resetEntry);
     return resetEntry;
@@ -133,6 +158,7 @@ export async function setMemorizeFavoritesPokemonStorage() {
   await writeFavoritePokemonEntry({
     username: authenticatedUser.username,
     pokemons: existingFavorites.pokemons,
+    expiresAt: existingFavorites.expiresAt,
   });
 }
 
@@ -158,10 +184,9 @@ export async function addFavoritePokemon(pokemonId) {
     pokemonId,
   ]);
 
-  await writeFavoritePokemonEntry({
-    ...favoriteEntry,
-    pokemons: nextFavorites,
-  });
+  await writeFavoritePokemonEntry(
+    buildFavoritePokemonEntry(favoriteEntry.username, nextFavorites)
+  );
 
   return nextFavorites;
 }
@@ -170,10 +195,9 @@ export async function removeFavoritePokemon(pokemonId) {
   const favoriteEntry = await readFavoritePokemonEntry();
   const nextFavorites = favoriteEntry.pokemons.filter((id) => id !== pokemonId);
 
-  await writeFavoritePokemonEntry({
-    ...favoriteEntry,
-    pokemons: nextFavorites,
-  });
+  await writeFavoritePokemonEntry(
+    buildFavoritePokemonEntry(favoriteEntry.username, nextFavorites)
+  );
 
   return nextFavorites;
 }
