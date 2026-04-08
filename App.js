@@ -1,24 +1,53 @@
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DetailScreen, HomeScreen } from './src/screens';
 import { AuthForm } from './src/components/AuthForm/AuthForm';
-import { authenticate } from './src/services/authService';
+import { authenticate, getAuthenticatedUser } from './src/services/authService';
 
 export default function App() {
   const [selectedPokemon, setSelectedPokemon] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authErrorMessage, setAuthErrorMessage] = useState(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
-  const handleAuthSubmit = (username) => {
-    if (!username) {
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        const authenticatedUser = await getAuthenticatedUser();
+        setIsAuthenticated(Boolean(authenticatedUser));
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsCheckingSession(false);
+      }
+    };
+
+    restoreSession();
+  }, []);
+
+  const handleAuthSubmit = async (username) => {
+    const normalizedUsername =
+      typeof username === 'string' ? username.trim() : '';
+
+    if (!normalizedUsername) {
       setAuthErrorMessage("Username is required.");
       return;
     }
-    authenticate(username);
-    setAuthErrorMessage(null);
-    setIsAuthenticated(true);
+
+    try {
+      await authenticate(normalizedUsername);
+      setAuthErrorMessage(null);
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error(error);
+      setAuthErrorMessage("Impossible d'enregistrer la session.");
+    }
   };
+
+  if (isCheckingSession) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <AuthForm onSubmit={handleAuthSubmit} errorMessage={authErrorMessage} />

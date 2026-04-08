@@ -1,51 +1,185 @@
-export function authenticate(username) {
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('username', username);
-    setMemorizeFavoritesPokemonStorage();
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const MAX_FAVORITE_POKEMON = 5;
+
+function buildFavoritePokemonKey(username) {
+  return `favoritePokemon:${username}`;
 }
 
-export function getAuthenticatedUser() {
-    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-    const username = localStorage.getItem('username');
-    return isAuthenticated ? { username } : null;
+async function cleanupFavoritePokemonStorage(currentUsername) {
+  const storageKeys = await AsyncStorage.getAllKeys();
+  const keysToRemove = storageKeys.filter((key) => {
+    const isLegacyFavoriteKey = key === 'favoritePokemon';
+    const isOtherFavoriteKey =
+      key.startsWith('favoritePokemon:') &&
+      key !== buildFavoritePokemonKey(currentUsername);
+
+    return isLegacyFavoriteKey || isOtherFavoriteKey;
+  });
+
+  if (keysToRemove.length > 0) {
+    await AsyncStorage.multiRemove(keysToRemove);
+  }
 }
 
-export function logout() {
-    if (!getAuthenticatedUser()) {
-        throw new Error('No user is currently authenticated.');
-    }
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('username');
+function normalizeFavoritePokemonIds(pokemonIds) {
+  if (!Array.isArray(pokemonIds)) {
+    return [];
+  }
+
+  const uniquePokemonIds = pokemonIds.filter(
+    (pokemonId, index) =>
+      Number.isInteger(pokemonId) && pokemonIds.indexOf(pokemonId) === index
+  );
+
+  return uniquePokemonIds.slice(-MAX_FAVORITE_POKEMON);
 }
 
-export function setMemorizeFavoritesPokemonStorage() {
-    const authenticatedUser = getAuthenticatedUser();
-    if (!authenticatedUser) {
-        throw new Error('User must be authenticated to save favorite Pokemon.');
-    }
-    localStorage.setItem('favoritePokemon', JSON.stringify({username: authenticatedUser.username, pokemons: []}));
+async function writeFavoritePokemonEntry(entry) {
+  const storageKey = buildFavoritePokemonKey(entry.username);
+  await AsyncStorage.setItem(storageKey, JSON.stringify(entry));
 }
 
-export function addFavoritePokemon(pokemonId) {
-    const authenticatedUser = getAuthenticatedUser();
-    if (!authenticatedUser) {
-        throw new Error('User must be authenticated to add favorite Pokemon.');
+async function readFavoritePokemonEntry() {
+  const authenticatedUser = await getAuthenticatedUser();
+
+  if (!authenticatedUser) {
+    throw new Error('User must be authenticated to access favorite Pokemon.');
+  }
+
+  await cleanupFavoritePokemonStorage(authenticatedUser.username);
+
+  const storageKey = buildFavoritePokemonKey(authenticatedUser.username);
+  const rawFavorites = await AsyncStorage.getItem(storageKey);
+
+  if (!rawFavorites) {
+    const emptyEntry = {
+      username: authenticatedUser.username,
+      pokemons: [],
+    };
+
+    await writeFavoritePokemonEntry(emptyEntry);
+    return emptyEntry;
+  }
+
+  try {
+    const parsedFavorites = JSON.parse(rawFavorites);
+    const normalizedFavorites = normalizeFavoritePokemonIds(parsedFavorites?.pokemons);
+
+    if (
+      parsedFavorites?.username !== authenticatedUser.username ||
+      !Array.isArray(parsedFavorites?.pokemons)
+    ) {
+      throw new Error('Invalid favorite Pokemon storage.');
     }
-    localStorage.setItem('favoritePokemon', JSON.stringify({username: authenticatedUser.username, pokemons: [...getFavoritesPokemon(), pokemonId]}));
+
+    if (normalizedFavorites.length !== parsedFavorites.pokemons.length) {
+      const normalizedEntry = {
+        username: authenticatedUser.username,
+        pokemons: normalizedFavorites,
+      };
+
+      await writeFavoritePokemonEntry(normalizedEntry);
+      return normalizedEntry;
+    }
+
+    return parsedFavorites;
+  } catch (error) {
+    const resetEntry = {
+      username: authenticatedUser.username,
+      pokemons: [],
+    };
+
+    await writeFavoritePokemonEntry(resetEntry);
+    return resetEntry;
+  }
 }
 
-export function getFavoritesPokemon() {
-    let favorites = localStorage.getItem('favoritePokemon');
+export async function authenticate(username) {
+  await AsyncStorage.setItem('isAuthenticated', 'true');
+  await AsyncStorage.setItem('username', username);
+  await cleanupFavoritePokemonStorage(username);
+  await setMemorizeFavoritesPokemonStorage();
+}
 
-    if (!favorites) {
-        setMemorizeFavoritesPokemonStorage();
-        favorites = localStorage.getItem('favoritePokemon');
-    }
+export async function getAuthenticatedUser() {
+  const [isAuthenticated, username] = await Promise.all([
+    AsyncStorage.getItem('isAuthenticated'),
+    AsyncStorage.getItem('username'),
+  ]);
 
-    if (favorites.username !== getAuthenticatedUser()?.username) {
-        favorites = {username: getAuthenticatedUser()?.username, pokemons: []};
-        localStorage.setItem('favoritePokemon', JSON.stringify(favorites));   
-    }
+  return isAuthenticated === 'true' && username ? { username } : null;
+}
 
-    return JSON.parse(favorites.pokemons);
+export async function logout() {
+  const authenticatedUser = await getAuthenticatedUser();
+
+  if (!authenticatedUser) {
+    throw new Error('No user is currently authenticated.');
+  }
+
+  await AsyncStorage.multiRemove(['isAuthenticated', 'username']);
+}
+
+export async function setMemorizeFavoritesPokemonStorage() {
+  const authenticatedUser = await getAuthenticatedUser();
+
+  if (!authenticatedUser) {
+    throw new Error('User must be authenticated to save favorite Pokemon.');
+  }
+
+  const existingFavorites = await readFavoritePokemonEntry();
+
+  await writeFavoritePokemonEntry({
+    username: authenticatedUser.username,
+    pokemons: existingFavorites.pokemons,
+  });
+}
+
+export async function getFavoritesPokemon() {
+  const favoriteEntry = await readFavoritePokemonEntry();
+  return favoriteEntry.pokemons;
+}
+
+export async function isFavoritePokemon(pokemonId) {
+  const favorites = await getFavoritesPokemon();
+  return favorites.includes(pokemonId);
+}
+
+export async function addFavoritePokemon(pokemonId) {
+  const favoriteEntry = await readFavoritePokemonEntry();
+
+  if (favoriteEntry.pokemons.includes(pokemonId)) {
+    return favoriteEntry.pokemons;
+  }
+
+  const nextFavorites = normalizeFavoritePokemonIds([
+    ...favoriteEntry.pokemons,
+    pokemonId,
+  ]);
+
+  await writeFavoritePokemonEntry({
+    ...favoriteEntry,
+    pokemons: nextFavorites,
+  });
+
+  return nextFavorites;
+}
+
+export async function removeFavoritePokemon(pokemonId) {
+  const favoriteEntry = await readFavoritePokemonEntry();
+  const nextFavorites = favoriteEntry.pokemons.filter((id) => id !== pokemonId);
+
+  await writeFavoritePokemonEntry({
+    ...favoriteEntry,
+    pokemons: nextFavorites,
+  });
+
+  return nextFavorites;
+}
+
+export async function toggleFavoritePokemon(pokemonId) {
+  return (await isFavoritePokemon(pokemonId))
+    ? removeFavoritePokemon(pokemonId)
+    : addFavoritePokemon(pokemonId);
 }

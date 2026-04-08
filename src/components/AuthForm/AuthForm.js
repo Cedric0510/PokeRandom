@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TouchableOpacity, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { styleAuthForm } from './StyleAuthForm';
 
 export function AuthForm({ onSubmit, errorMessage }) {
@@ -54,12 +54,12 @@ export function AuthForm({ onSubmit, errorMessage }) {
 
           <Text style={styleAuthForm.helper}>Prêt a capturer quelques Pokemon ?</Text>
 
-          <TouchableOpacity
+          <Pressable
             style={styleAuthForm.button}
             onPress={() => onSubmit(username, password)}
           >
             <Text style={styleAuthForm.buttonText}>Se connecter</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
     </View>

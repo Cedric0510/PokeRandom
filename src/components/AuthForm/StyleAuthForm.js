@@ -15,13 +15,7 @@ export const styleAuthForm = StyleSheet.create({
     borderRadius: 30,
     padding: 18,
     backgroundColor: '#E84C44',
-    shadowColor: '#8F2321',
-    shadowOffset: {
-      width: 0,
-      height: 16,
-    },
-    shadowOpacity: 0.24,
-    shadowRadius: 22,
+    boxShadow: '0px 16px 22px rgba(143, 35, 33, 0.24)',
     elevation: 10,
   },
   topDecor: {
@@ -104,13 +98,7 @@ export const styleAuthForm = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     fontSize: 15,
     color: '#1D1A16',
-    shadowColor: '#D5B788',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
+    boxShadow: '0px 6px 10px rgba(213, 183, 136, 0.12)',
     elevation: 3,
   },
   helper: {
@@ -125,13 +113,7 @@ export const styleAuthForm = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     backgroundColor: '#2D72C8',
-    shadowColor: '#1D4D88',
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    shadowOpacity: 0.26,
-    shadowRadius: 14,
+    boxShadow: '0px 10px 14px rgba(29, 77, 136, 0.26)',
     elevation: 6,
   },
   buttonText: {

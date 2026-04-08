@@ -7,13 +7,7 @@ export const styleDetailPokemon = StyleSheet.create({
     borderWidth: 4,
     borderColor: '#6AB764',
     overflow: 'hidden',
-    shadowColor: '#7E1E1E',
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.18,
-    shadowRadius: 18,
+    boxShadow: '0px 12px 18px rgba(126, 30, 30, 0.18)',
     elevation: 8,
   },
   heroPanel: {

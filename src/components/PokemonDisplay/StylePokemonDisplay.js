@@ -2,11 +2,14 @@ import { StyleSheet } from 'react-native';
 
 export const stylePokemonDisplay = StyleSheet.create({
   card: {
-    alignItems: 'center',
-    justifyContent: 'flex-start',
+    position: 'relative',
     width: '31%',
     minWidth: 92,
     marginBottom: 18,
+  },
+  cardBody: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
     transform: [{ scale: 1 }],
   },
   cardPressed: {
@@ -20,14 +23,40 @@ export const stylePokemonDisplay = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#51B85A',
-    shadowColor: '#0A5A45',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.24,
-    shadowRadius: 10,
+    boxShadow: '0px 8px 10px rgba(10, 90, 69, 0.24)',
     elevation: 6,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: -6,
+    right: 0,
+    zIndex: 2,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF7DF',
+    borderWidth: 2,
+    borderColor: '#E7C56A',
+    boxShadow: '0px 4px 6px rgba(152, 120, 29, 0.18)',
+    elevation: 4,
+  },
+  favoriteButtonActive: {
+    backgroundColor: '#FFD34D',
+    borderColor: '#D89600',
+  },
+  favoriteButtonPressed: {
+    transform: [{ scale: 0.94 }],
+  },
+  favoriteIcon: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#C8A74D',
+    lineHeight: 20,
+  },
+  favoriteIconActive: {
+    color: '#7A4A00',
   },
   sprite: {
     width: 72,
@@ -45,12 +74,7 @@ export const stylePokemonDisplay = StyleSheet.create({
     fontWeight: '700',
     color: '#7C69A8',
     letterSpacing: 0.8,
-    textShadowColor: 'rgba(225, 239, 255, 0.85)',
-    textShadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    textShadowRadius: 2,
+    textShadow: '0px 1px 2px rgba(225, 239, 255, 0.85)',
   },
   name: {
     marginTop: 8,

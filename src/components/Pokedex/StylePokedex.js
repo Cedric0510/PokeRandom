@@ -12,13 +12,7 @@ export const stylePokedex = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 16,
     backgroundColor: '#EE4F49',
-    shadowColor: '#8F2321',
-    shadowOffset: {
-      width: 0,
-      height: 16,
-    },
-    shadowOpacity: 0.28,
-    shadowRadius: 22,
+    boxShadow: '0px 16px 22px rgba(143, 35, 33, 0.28)',
     elevation: 10,
   },
   topBar: {
