@@ -29,8 +29,12 @@ export default function HomeScreen({
     setErrorMessage('');
 
     try {
+      const safeHiddenPokemonIds = Array.isArray(hiddenPokemonIds)
+        ? hiddenPokemonIds
+        : null;
+
       const activeHiddenPokemonIds =
-        hiddenPokemonIds ?? (await getFavoritesPokemon());
+        safeHiddenPokemonIds ?? (await getFavoritesPokemon());
 
       setFavoritePokemonIds(activeHiddenPokemonIds);
 
@@ -111,7 +115,7 @@ export default function HomeScreen({
         <View style={styleHomeScreen.reloadButton}>
           <Button
             title={isLoading ? 'Chargement...' : 'Charger 5 autres Pokemon'}
-            onPress={loadPokemons}
+            onPress={() => loadPokemons()}
             disabled={isLoading}
             color="#D93A3F"
           />
